@@ -1,0 +1,70 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-03-26 11:54:19.197227",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "configurations_section",
+  "import_start_date",
+  "device_1_ip",
+  "device_1_id",
+  "device_2_ip",
+  "device_2_id"
+ ],
+ "fields": [
+  {
+   "fieldname": "configurations_section",
+   "fieldtype": "Section Break",
+   "label": "Configurations"
+  },
+  {
+   "fieldname": "import_start_date",
+   "fieldtype": "Small Text",
+   "label": "Import Start Date"
+  },
+  {
+   "fieldname": "device_2_ip",
+   "fieldtype": "Small Text",
+   "label": "Device 2 IP"
+  },
+  {
+   "fieldname": "device_2_id",
+   "fieldtype": "Small Text",
+   "label": "Device 2 ID"
+  },
+  {
+   "fieldname": "device_1_ip",
+   "fieldtype": "Small Text",
+   "label": "Device 1 IP"
+  },
+  {
+   "fieldname": "device_1_id",
+   "fieldtype": "Small Text",
+   "label": "Device 1 ID"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2025-03-26 13:36:12.286845",
+ "modified_by": "Administrator",
+ "module": "fingerprint",
+ "name": "fingerprint_config",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

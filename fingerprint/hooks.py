@@ -1,8 +1,8 @@
 app_name = "fingerprint"
 app_title = "fingerprint"
-app_publisher = "fingerprint"
-app_description = "fingerprint"
-app_email = "fingerprint@gmail.com"
+app_publisher = "Mahmod Aldahol"
+app_description = "An ERPnext app the get data from fingerprint devices and store them in ERPnext system"
+app_email = "mahmodaldahol010@gmail.com"
 app_license = "mit"
 
 # Apps
@@ -137,13 +137,15 @@ app_license = "mit"
 # ---------------
 # Hook on document methods and events
 
-# doc_events = {
+doc_events = {
 # 	"*": {
 # 		"on_update": "method",
 # 		"on_cancel": "method",
 # 		"on_trash": "method"
 # 	}
-# }
+
+
+}
 
 # Scheduled Tasks
 # ---------------
