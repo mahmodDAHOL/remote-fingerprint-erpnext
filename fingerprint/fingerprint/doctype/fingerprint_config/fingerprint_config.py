@@ -310,35 +310,34 @@ def generate_keys(user):
 class fingerprint_config(Document):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)  
+        if self.get('device_ip_list'):
+            device_IP_list = self.get('device_ip_list').split(",")
+            device_IP_list = [item.strip() for item in device_IP_list]
 
-        device_1_id = self.get('device_1_id')
-        device_2_id = self.get('device_2_id')
-        device_1_ip = self.get('device_1_ip')
-        device_2_ip = self.get('device_2_ip')
-
-        self.devices = devices = [
-            {'device_id':device_1_id,'ip':device_1_ip, 'punch_direction': 'AUTO', 'clear_from_device_on_fetch': False},
-            {'device_id':device_2_id,'ip':device_2_ip, 'punch_direction': 'AUTO', 'clear_from_device_on_fetch': False}
-        ]
+            device_ID_list = self.get('device_id_list').split(",")
+            device_ID_list = [item.strip() for item in device_ID_list]
         
-        ERPNEXT_VERSION = 14
-        IMPORT_START_DATE = self.get('import_start_date')
-        LOGS_DIRECTORY = 'logs' # logs of this script is stored in this directory
+            self.devices = []
+            for device_ip, device_id in zip(device_IP_list, device_ID_list):
+                self.devices.append({'device_id':device_id,'ip':device_ip, 'punch_direction': 'AUTO', 'clear_from_device_on_fetch': False})
+            
+            ERPNEXT_VERSION = 14
+            IMPORT_START_DATE = self.get('import_start_date')
+            LOGS_DIRECTORY = 'logs' # logs of this script is stored in this directory
 
 
-        fing_config = {
-            'ERPNEXT_VERSION': ERPNEXT_VERSION,
-            'IMPORT_START_DATE':IMPORT_START_DATE,
-            'LOGS_DIRECTORY': LOGS_DIRECTORY,
-            'devices': devices
-        }
+            fing_config = {
+                'ERPNEXT_VERSION': ERPNEXT_VERSION,
+                'IMPORT_START_DATE':IMPORT_START_DATE,
+                'LOGS_DIRECTORY': LOGS_DIRECTORY,
+                'devices': self.devices
+            }
 
-        global config
-        config = dotdict(fing_config)
+            global config
+            config = dotdict(fing_config)
 
     def get(self, key):
         return self.__dict__.get(key, None)
 
     def before_save(self):	
         main()
-
