@@ -148,7 +148,8 @@ def pull_process_and_push_data(device, device_attendance_logs=None):
             )
 
         except Exception as e:
-            error_logger.exception(f"Error fetching user {device_attendance_log['user_id']}: {e}")
+            # error_logger.exception(f"Error fetching user {device_attendance_log['user_id']}: {e}")
+            pass
 
 
 
