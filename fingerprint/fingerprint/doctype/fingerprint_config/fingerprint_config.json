@@ -7,8 +7,8 @@
  "field_order": [
   "configurations_section",
   "import_start_date",
-  "device_ip_list",
-  "device_id_list"
+  "attach_data",
+  "attach_device_2_data"
  ],
  "fields": [
   {
@@ -18,28 +18,24 @@
   },
   {
    "fieldname": "import_start_date",
-   "fieldtype": "Small Text",
+   "fieldtype": "Date",
    "label": "Import Start Date"
   },
   {
-   "fieldname": "device_ip_list",
-   "fieldtype": "Small Text",
-   "in_list_view": 1,
-   "label": "Device IPs (comma separeted)",
-   "reqd": 1
+   "fieldname": "attach_data",
+   "fieldtype": "Attach",
+   "label": "attach device 1 data"
   },
   {
-   "fieldname": "device_id_list",
-   "fieldtype": "Small Text",
-   "in_list_view": 1,
-   "label": "Device IDs (comma separeted)",
-   "reqd": 1
+   "fieldname": "attach_device_2_data",
+   "fieldtype": "Attach",
+   "label": "attach device 2 data"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-04-07 12:39:56.245501",
+ "modified": "2025-05-21 12:07:44.562481",
  "modified_by": "Administrator",
  "module": "fingerprint",
  "name": "fingerprint_config",
