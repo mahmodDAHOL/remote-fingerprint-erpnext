@@ -110,6 +110,10 @@ def sort_file_by_timestamp(file_path):
         for _, line in parsed_lines:
             file.write(line)
 
+def edit_attendance(record):
+    record['timestamp'] = datetime.datetime.fromtimestamp(record['timestamp'])
+    return record
+
 def pull_process_and_push_data(device, device_attendance_logs=None):
     
     """ Takes a single device config as param and pulls data from that device.
@@ -123,15 +127,27 @@ def pull_process_and_push_data(device, device_attendance_logs=None):
     attendance_success_logger = setup_logger(attendance_success_log_file, '/'.join(['logs', attendance_success_log_file])+'.log')
     attendance_failed_logger = setup_logger(attendance_failed_log_file, '/'.join(['logs', attendance_failed_log_file])+'.log')
     if not device_attendance_logs:
-        device_attendance_logs = get_all_attendance_from_device(device['ip'], device_id=device['device_id'], clear_from_device_on_fetch=device['clear_from_device_on_fetch'])
+        dump_file_name = get_dump_file_name_and_directory(device["device_id"], device["ip"])
+        data_file_path = dump_file_name
+        content = open(data_file_path, 'r').read()
+        attendances = json.loads(content)
+        updated_attendances = [edit_attendance(att) for att in attendances]
+        attendances = sorted(updated_attendances, key=lambda x: x['timestamp'])
+
+        device_attendance_logs = attendances
         if not device_attendance_logs:
             return
     import_start_date = _safe_convert_date(config.IMPORT_START_DATE, "%Y%m%d")
+    
+    info_logger.info(f"{import_start_date=}")
+    info_logger.info(f"{device_attendance_logs[0]=}")
     for i, x in enumerate(device_attendance_logs):
-            if x['timestamp'] >= import_start_date:
-                index_of_last = i
-                break
-        # Process each log in the determined range
+        if x['timestamp'] >= import_start_date:
+            index_of_last = i
+            break
+
+    info_logger.info(f"{index_of_last=}")
+    # Process each log in the determined range
     for device_attendance_log in device_attendance_logs[index_of_last+1:]:
         punch_direction = device['punch_direction']
         if punch_direction == 'AUTO':
@@ -151,95 +167,6 @@ def pull_process_and_push_data(device, device_attendance_logs=None):
             # error_logger.exception(f"Error fetching user {device_attendance_log['user_id']}: {e}")
             pass
 
-
-
-def get_all_attendance_from_device(ip, port=4370, timeout=30, device_id=None, clear_from_device_on_fetch=False):
-    
-    zk = ZK(ip, port=port, timeout=timeout)
-    conn = None
-    attendances = []
-    try:
-        conn = zk.connect()
-        x = conn.disable_device()
-        # device is disabled when fetching data
-        info_logger.info("\t".join((ip, "Device Disable Attempted. Result:", str(x))))
-        attendances = conn.get_attendance()
-        info_logger.info("\t".join((ip, "Attendances Fetched:", str(len(attendances)))))
-        status.set(f'{device_id}_push_timestamp', None)
-        status.set(f'{device_id}_pull_timestamp', str(datetime.datetime.now()))
-        status.save()
-        if len(attendances):
-            # keeping a backup before clearing data incase the programs fails.
-            # if everything goes well then this file is removed automatically at the end.
-            dump_file_name = get_dump_file_name_and_directory(device_id, ip)
-
-            with open(dump_file_name, 'w+') as f:
-                f.write(json.dumps(list(map(lambda x: x.__dict__, attendances)), default=datetime.datetime.timestamp))
-        x = conn.enable_device()
-        info_logger.info("\t".join((ip, "Device Enable Attempted. Result:", str(x))))
-    except:
-        error_logger.exception(str(ip)+' exception when fetching from device...')
-        raise Exception('Device fetch failed.')
-    finally:
-        if conn:
-            conn.disconnect()
-    return list(map(lambda x: x.__dict__, attendances))
-
-
-
-def update_shift_last_sync_timestamp(shift_type_device_mapping):
-    
-    """
-    ### algo for updating the sync_current_timestamp
-    - get a list of devices to check
-    - check if all the devices have a non 'None' push_timestamp
-        - check if the earliest of the pull timestamp is greater than sync_current_timestamp for each shift name
-            - then update this min of pull timestamp to the shift
-
-    """
-    for shift_type_device_map in shift_type_device_mapping:
-        all_devices_pushed = True
-        pull_timestamp_array = []
-        for device_id in shift_type_device_map['related_device_id']:
-            if not status.get(f'{device_id}_push_timestamp'):
-                all_devices_pushed = False
-                break
-            pull_timestamp_array.append(_safe_convert_date(status.get(f'{device_id}_pull_timestamp'), "%Y-%m-%d %H:%M:%S.%f"))
-        if all_devices_pushed:
-            min_pull_timestamp = min(pull_timestamp_array)
-            if isinstance(shift_type_device_map['shift_type_name'], str): # for backward compatibility of config file
-                shift_type_device_map['shift_type_name'] = [shift_type_device_map['shift_type_name']]
-            for shift in shift_type_device_map['shift_type_name']:
-                try:
-                    sync_current_timestamp = _safe_convert_date(status.get(f'{shift}_sync_timestamp'), "%Y-%m-%d %H:%M:%S.%f")
-                    if (sync_current_timestamp and min_pull_timestamp > sync_current_timestamp) or (min_pull_timestamp and not sync_current_timestamp):
-                        response_code = send_shift_sync_to_erpnext(shift, min_pull_timestamp)
-                        if response_code == 200:
-                            status.set(f'{shift}_sync_timestamp', str(min_pull_timestamp))
-                            status.save()
-                except:
-                    error_logger.exception('Exception in update_shift_last_sync_timestamp, for shift:'+shift)
-
-def send_shift_sync_to_erpnext(shift_type_name, sync_timestamp):
-    
-    url = config.ERPNEXT_URL + "/api/resource/Shift Type/" + shift_type_name
-    headers = {
-        'Authorization': "token "+ config.ERPNEXT_API_KEY + ":" + config.ERPNEXT_API_SECRET,
-        'Accept': 'application/json'
-    }
-    data = {
-        "last_sync_of_checkin" : str(sync_timestamp)
-    }
-    try:
-        response = requests.request("PUT", url, headers=headers, data=json.dumps(data))
-        if response.status_code == 200:
-            info_logger.info("\t".join(['Shift Type last_sync_of_checkin Updated', str(shift_type_name), str(sync_timestamp.timestamp())]))
-        else:
-            error_str = _safe_get_error_str(response)
-            error_logger.error('\t'.join(['Error during ERPNext Shift Type API Call.', str(shift_type_name), str(sync_timestamp.timestamp()), error_str]))
-        return response.status_code
-    except:
-        error_logger.exception("\t".join(['exception when updating last_sync_of_checkin in Shift Type', str(shift_type_name), str(sync_timestamp.timestamp())]))
 
 def get_last_line_from_file(file):
     
@@ -293,20 +220,6 @@ def _safe_get_error_str(res):
         error_str = str(res.__dict__)
     return error_str
 
-def generate_keys(user):
-
-    user_details = frappe.get_doc('User', user)
-    api_secret = frappe.generate_hash(length=15)
-
-    if not user_details.api_key:
-        api_key = frappe.generate_hash(length=15)
-        user_details.api_key = api_key
-
-    frappe.db.set_value('User', user, 'api_secret', api_secret)
-
-    return api_secret
-
-
 
 class fingerprint_config(Document):
     def __init__(self, *args, **kwargs):
@@ -323,7 +236,7 @@ class fingerprint_config(Document):
                 self.devices.append({'device_id':device_id,'ip':device_ip, 'punch_direction': 'AUTO', 'clear_from_device_on_fetch': False})
             
             ERPNEXT_VERSION = 14
-            IMPORT_START_DATE = self.get('import_start_date')
+            IMPORT_START_DATE = self.get('import_start_date').replace('-','')
             LOGS_DIRECTORY = 'logs' # logs of this script is stored in this directory
 
 
@@ -341,4 +254,6 @@ class fingerprint_config(Document):
         return self.__dict__.get(key, None)
 
     def before_save(self):	
+        info_logger.info(str(config))
+        
         main()

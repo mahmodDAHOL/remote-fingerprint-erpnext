@@ -18,7 +18,7 @@
   },
   {
    "fieldname": "import_start_date",
-   "fieldtype": "Small Text",
+   "fieldtype": "Date",
    "label": "Import Start Date"
   },
   {
@@ -39,7 +39,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-04-07 12:39:56.245501",
+ "modified": "2025-05-20 15:12:18.790775",
  "modified_by": "Administrator",
  "module": "fingerprint",
  "name": "fingerprint_config",
