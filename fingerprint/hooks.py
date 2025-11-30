@@ -137,15 +137,13 @@ app_license = "mit"
 # ---------------
 # Hook on document methods and events
 
-doc_events = {
+# doc_events = {
 # 	"*": {
 # 		"on_update": "method",
 # 		"on_cancel": "method",
 # 		"on_trash": "method"
 # 	}
-
-
-}
+# }
 
 # Scheduled Tasks
 # ---------------
@@ -244,3 +242,17 @@ doc_events = {
 # 	"Logging DocType Name": 30  # days to retain logs
 # }
 
+# on_session_creation = [
+#     "fingerprint.utils.redirect_after_login"
+# ]
+
+
+fixtures = [
+
+    "Custom Field",
+    "Property Setter",
+
+    "Client Script",
+    "Server Script",
+
+]
