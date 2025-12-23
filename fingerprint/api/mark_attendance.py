@@ -161,7 +161,7 @@ def calculate_early_exit_and_late_entry(employee, sorted_logs):
         })
 
 def fetch_for_specific_shift_type(shift, process_attendance_after, last_sync_of_checkin):
-    doc = frappe.get_cached_doc("Shift Type", shift)
+    doc = frappe.get_doc("Shift Type", shift)
     doc.process_attendance_after = process_attendance_after
     doc.last_sync_of_checkin = last_sync_of_checkin
     doc.process_auto_attendance()
@@ -198,15 +198,15 @@ def save_or_insert(data):
 @frappe.whitelist()
 def process_auto_attendance_for_all_shifts(shift_type, process_attendance_after, last_sync_of_checkin):
     """Called from hooks"""
-    try:
-        shift_list = frappe.get_all("Shift Type", filters={"enable_auto_attendance": "1"}, pluck="name")
-        if shift_type not in shift_list:
-            for shift in shift_list:
-                fetch_for_specific_shift_type(shift, process_attendance_after, last_sync_of_checkin)
-                # add_absence_to_attendances(process_attendance_after, last_sync_of_checkin)
-                
-        else:
-            fetch_for_specific_shift_type(shift_type, process_attendance_after, last_sync_of_checkin)
+    # try:
+    shift_list = frappe.get_all("Shift Type", pluck="name")
+    if shift_type not in shift_list:
+        for shift in shift_list:
+            fetch_for_specific_shift_type(shift, process_attendance_after, last_sync_of_checkin)
             # add_absence_to_attendances(process_attendance_after, last_sync_of_checkin)
-    except Exception as e:
-        frappe.throw(str(e))
+            
+    else:
+        fetch_for_specific_shift_type(shift_type, process_attendance_after, last_sync_of_checkin)
+        # add_absence_to_attendances(process_attendance_after, last_sync_of_checkin)
+    # except Exception as e:
+    #     frappe.throw(str(e))

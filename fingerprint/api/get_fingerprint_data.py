@@ -87,22 +87,8 @@ def get_all_attendance_from_device(
             conn.disconnect()
     return "success"
 
-def upload_fingerprint_records(devices):
+def upload_fingerprint_records(devices, url, session):
 
-    url = "https://moi-mis.gov.sy"
-    username = "USERNAME"
-    password = "PASSWORD"
-
-    # Login to get session cookies
-    session = requests.Session()
-    login_response = session.post(
-        f"{url}/api/method/login", json={"usr": username, "pwd": password}
-    )
-
-    # Check if login was successful
-    if login_response.json().get("message") != "Logged In":
-        info_logger.info("Login failed")
-        exit()
 
     for device in devices:
         try:
@@ -148,21 +134,33 @@ def upload_fingerprint_records(devices):
             print(Fore.RED + f"failed to upload records from {device['ip']}" + Style.RESET_ALL)
 
 
-companies = [
-    "Ministry of information",
-    "TV",
-    ]
-ask_company = f"Enter number of your company:\n\t{'\n\t'.join([f'{i+1}. {com}' for i, com in enumerate(companies)])}\n"
-company = int(input(ask_company)) + 1
-number_of_devices = int(input("Enter number of devices: ").strip())
+
+url = "https://moi-mis.gov.sy"
+username = "USERNAME"
+password = "PASSWORD"
+ips = "IPs"
+company = "COMPANY"
+
+# Login to get session cookies
+session = requests.Session()
+login_response = session.post(
+    f"{url}/api/method/login", json={"usr": username, "pwd": password}
+)
+
+# Check if login was successful
+if login_response.json().get("message") != "Logged In":
+    info_logger.info("Login failed")
+    exit()
+
+devices_ips = ips.split(',')
+number_of_devices = len(devices_ips)
 devices = []
-for device_number in range(1, number_of_devices+1):
-    ip = input(f"Enter IP of device number {device_number}: ")
-    devices.append({"ip": ip, "id": f"{company}_{device_number}"})
+for device_number, device_ip in enumerate(devices_ips, 1):
+    devices.append({"ip": device_ip, "id": f"{company}_{device_number}"})
 
 
 all_success = True  # Flag to track success
-
+print(f"IPs: {devices_ips} | Company: {company}")
 for device in devices:
     try:
         res = get_all_attendance_from_device(
@@ -187,7 +185,7 @@ for device in devices:
 
 # Only run upload if all devices succeeded
 if all_success:
-    upload_fingerprint_records(devices)
+    upload_fingerprint_records(devices, url, session)
 else:
     print(Fore.YELLOW + "Upload skipped due to device fetch failure." + Style.RESET_ALL)
 
