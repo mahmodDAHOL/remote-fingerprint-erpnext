@@ -247,12 +247,38 @@ app_license = "mit"
 # ]
 
 
+# Define fixtures to export
 fixtures = [
-
-    "Custom Field",
-    "Property Setter",
-
-    "Client Script",
-    "Server Script",
-
+    # 1. Custom Fields for Fingerprint DocTypes
+    {
+        "doctype": "Custom Field",
+        "filters": [["module", "=", "fingerprint"]]
+    },
+    
+    # 2. Property Setters for Fingerprint DocTypes
+    {
+        "doctype": "Property Setter",
+        "filters": [["module", "=", "fingerprint"]]
+    },
+    
+    # 3. Client Scripts (Client)
+    {
+        "doctype": "Client Script",
+        "filters": [["module", "=", "fingerprint"]]
+    },
+    
+    # 4. Server Scripts (if applicable)
+    {
+        "doctype": "Server Script",
+        "filters": [["module", "=", "fingerprint"]]
+    },
+    
+    
+    # 7. Workspaces — optional (no direct 'module', but can match by label or content)
+    # Warning: Workspace has no 'module' field, so this is best-effort.
+    # Uncomment only if you have workspaces *named* with 'Fingerprint':
+    # {
+    #     "doctype": "Workspace",
+    #     "filters": [["name", "like", "%Fingerprint%"]]
+    # },
 ]
